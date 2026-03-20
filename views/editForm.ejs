@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Form</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+    <div id="title">
+        <h3>Job Application Form</h3>
+    </div>
+
+    <form METHOD="POST" action="/form/update/<%= data.applicant[0].id %>" id="jobapplication-form">
+        <input type="hidden" name="applicant_id" value="<%= data.applicant[0].id %>">
+
+        <fieldset id="section-basic">
+            <legend>Basic Details</legend>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="first_name">First Name:</label>
+                    <input type="text" id="first_name" name="first_name" value="<%= data.applicant[0].first_name %>">
+                    <span id="error-first_name" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="last_name">Last Name:</label>
+                    <input type="text" id="last_name" name="last_name" value="<%= data.applicant[0].last_name %>">
+                    <span id="error-last_name" class="error-text"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="designation">Designation:</label>
+                    <input type="text" id="designation" name="designation" value="<%= data.applicant[0].designation %>">
+                    <span id="error-designation" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="<%= data.applicant[0].email %>">
+                    <span id="error-email" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="phone_number">Phone Number:</label>
+                    <input type="text" id="phone_number" name="phone_number" value="<%= data.applicant[0].phone %>">
+                    <span id="error-phone_number" class="error-text"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="address_1">Address Line 1:</label>
+                    <input type="text" id="address_1" name="address_1" value="<%= data.address[0].address_line_1 %>">
+                    <span id="error-address_1" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="address_2">Address Line 2:</label>
+                    <input type="text" id="address_2" name="address_2" value="<%= data.address[0].address_line_2 %>">
+                    <span id="error-address_2" class="error-text"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="city">City:</label>
+                    <input type="text" id="city" name="city" value="<%= data.address[0].city %>">
+                    <span id="error-city" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="state">State:</label>
+                    <select name="state" id="state">
+                        <option value="" disabled selected>Select State</option>
+                        <option value="AP" <%- data.address[0].state==='AP' ? 'selected' : '' %>>Andhra Pradesh</option>
+                        <option value="MH" <%- data.address[0].state==='MH' ? 'selected' : '' %>>Maharashtra</option>
+                        <option value="DL" <%- data.address[0].state==='DL' ? 'selected' : '' %>>Delhi</option>
+                        <option value="GJ" <%- data.address[0].state==='GJ' ? 'selected' : '' %>>Gujarat</option>
+                    </select>
+                    <span id="error-state" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="zip_code">Zip Code:</label>
+                    <input type="text" id="zip_code" name="zip_code" value="<%= data.address[0].zip_code %>">
+                    <span id="error-zip_code" class="error-text"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label>Gender:</label>
+                    <div>
+                        <input type="radio" name="gender" id="male" value="male" <%- data.applicant[0].gender==='male'
+                            ? 'checked' : '' %>>
+                        <label for="male">Male</label>
+                        <input type="radio" name="gender" id="female" value="female" <%-
+                            data.applicant[0].gender==='female' ? 'checked' : '' %>>
+                        <label for="female">Female</label>
+                    </div>
+                    <span id="error-gender" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="relationship_status">Relationship Status:</label>
+                    <select id="relationship_status" name="relationship_status">
+                        <option value="" disabled selected>Select Status</option>
+                        <option value="single" <%- data.applicant[0].relationship_status==='single' ? 'selected' : '' %>
+                            >Single</option>
+                        <option value="married" <%- data.applicant[0].relationship_status==='married' ? 'selected' : ''
+                            %>>Married</option>
+                        <option value="divorced" <%- data.applicant[0].relationship_status==='divorced' ? 'selected'
+                            : '' %>>Divorced</option>
+                    </select>
+                    <span id="error-relationship_status" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="dob">Date of Birth:</label>
+                    <input type="date" id="dob" name="dob"
+                        value="<%= data.applicant[0].date_of_birth.toISOString().slice(0,10) %>">
+                    <span id="error-dob" class="error-text"></span>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Education Details</legend>
+            <table id="education-info">
+                <thead>
+                    <tr>
+                        <th>Sr. No</th>
+                        <th>Course</th>
+                        <th>Passing Year</th>
+                        <th>Uni/Board</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <!-- <tbody id="education-body">
+                    <tr>
+                        <td>1</td>
+                        <td><input type="text" name="degree1"></td>
+                        <td><input type="text" name="year_of_passing1"></td>
+                        <td><input type="text" name="institution1"></td>
+                        <td><input type="text" name="percentage1"></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><input type="text" name="degree2"></td>
+                        <td><input type="text" name="year_of_passing2"></td>
+                        <td><input type="text" name="institution2"></td>
+                        <td><input type="text" name="percentage2"></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><input type="text" name="degree3"></td>
+                        <td><input type="text" name="year_of_passing3"></td>
+                        <td><input type="text" name="institution3"></td>
+                        <td><input type="text" name="percentage3"></td>
+                    </tr>
+                </tbody> -->
+                <tbody id="education-body">
+
+                
+                <% for(let i=0; i< data.education.length; i++) { %>
+                    <tr>
+                        <td>
+                            <%=i + 1 %>
+                        </td>
+                        <td><input type="text" name="degree<%= i+1 %>" value="<%= data.education[i].course_name %>">
+                        </td>
+                        <td><input type="text" name="year_of_passing<%= i+1 %>"
+                                value="<%= data.education[i].passing_year %>"></td>
+                        <td><input type="text" name="institution<%= i+1 %>"
+                                value="<%= data.education[i].board_university %>"></td>
+                        <td><input type="text" name="percentage<%= i+1 %>"
+                                value="<%= data.education[i].result_percentage %>"></td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+            <input type="button" value="Add Row" id="btn-add-edu">
+            <input type="button" value="Remove Last Row" id="btn-remove-edu">
+        </fieldset>
+
+        <fieldset>
+            <legend>Work Experience</legend>
+            <table id="work-info">
+                <thead>
+                    <tr>
+                        <th>Sr. No</th>
+                        <th>Company Name</th>
+                        <th>Designation</th>
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th>Annual Package</th>
+                        <th>Reason to Leave</th>
+                    </tr>
+                </thead>
+                <tbody id="workExp-body">
+                    <!-- <tr>
+                        <td>1</td>
+                        <td><input type="text" name="company_name1"></td>
+                        <td><input type="text" name="job_title1"></td>
+                        <td><input type="date" name="start_date1"></td>
+                        <td><input type="date" name="end_date1"></td>
+                        <td><input type="text" name="salary1"></td>
+                        <td><input type="text" name="description1"></td>
+                    </tr> -->
+
+                    <% for(let i=0; i < data.workExp.length; i++) { %>
+                        <tr>
+                            <td>
+                                <%=i + 1 %>
+                            </td>
+                            <td><input type="text" name="company_name<%= i+1 %>"
+                                    value="<%= data.workExp[i].company_name %>"></td>
+                            <td><input type="text" name="job_title<%= i+1 %>"
+                                    value="<%= data.workExp[i].designation %>"></td>
+                            <td><input type="date" name="start_date<%= i+1 %>"
+                                    value="<%= data.workExp[i].from_date.toISOString().slice(0,10) %>"></td>
+                            <td><input type="date" name="end_date<%= i+1 %>"
+                                    value="<%= data.workExp[i].to_date.toISOString().slice(0,10) %>"></td>
+                            <td><input type="text" name="salary<%= i+1 %>" value="<%= data.workExp[i].package %>"></td>
+                            <td><input type="text" name="description<%= i+1 %>"
+                                    value="<%= data.workExp[i].leaving_reason %>"></td>
+                        </tr>
+
+                        <% } %>
+                </tbody>
+            </table>
+            <input type="button" value="Add Row" id="btn-add-work">
+            <input type="button" value="Remove Last Row" id="btn-remove-work">
+        </fieldset>
+
+
+        <div id="skills">
+
+            <fieldset>
+                <legend>Languages You Know..</legend>
+                <table>
+      <tbody id="lang-body">
+    <% for(let i=0; i<data.languages.length; i++) { %>
+        <% let langid = data.languages[i].language_name.toLowerCase() %>
+         <tr>
+            <td>
+                <input type="checkbox" id="lang_<%= langid %>" name="known_language" 
+                    value="<%= data.languages[i].language_name %>" checked>
+                <label for="lang_<%= langid %>"><%= data.languages[i].language_name %></label>
+            </td>
+            <td>
+                <input type="checkbox" id="read_<%= langid %>" name="read_<%= langid %>" 
+                    <%- data.languages[i].can_read===1 ? 'checked' : '' %>>
+                <label for="read_<%= langid %>">Read</label>
+            </td>
+            <td>
+                <input type="checkbox" id="write_<%= langid %>" name="write_<%= langid %>" 
+                    <%- data.languages[i].can_write===1 ? 'checked' : '' %>>
+                <label for="write_<%= langid %>">Write</label>
+            </td>
+            <td>
+                <input type="checkbox" id="speak_<%= langid %>" name="speak_<%= langid %>" 
+                    <%- data.languages[i].can_speak===1 ? 'checked' : '' %>>
+                <label for="speak_<%= langid %>">Speak</label>
+            </td>
+        </tr> 
+    <% } %>
+</tbody>
+                </table>
+            </fieldset>
+
+            <fieldset>
+                <legend>Technologies Known</legend>
+                <table>
+                    <tbody id="tech-body">
+    <% for( let i=0; i < data.technologies.length; i++ ) { %>
+        <% let techId = data.technologies[i].tech_name.toLowerCase().replace(/\./g, '').replace(/ /g, '') %>
+        <% let techName = data.technologies[i].tech_name %>
+        <tr>
+            <td>
+                <input type="checkbox" id="tech_<%= techId %>" name="known_tech" 
+                    value="<%= techName %>" checked>
+                <label for="tech_<%= techId %>"><%= techName %></label>
+            </td>
+            <td>
+                <input type="radio" id="beginner_<%= techId %>" name="level_<%= techId %>" 
+                    value="beginner"
+                    <%- data.technologies[i].proficiency_level === 'beginner' ? 'checked' : '' %>>
+                <label for="beginner_<%= techId %>">Beginner</label>
+            </td>
+            <td>
+                <input type="radio" id="intermediate_<%= techId %>" name="level_<%= techId %>" 
+                    value="intermediate"
+                    <%- data.technologies[i].proficiency_level === 'intermediate' ? 'checked' : '' %>>
+                <label for="intermediate_<%= techId %>">Intermediate</label>
+            </td>
+            <td>
+                <input type="radio" id="advanced_<%= techId %>" name="level_<%= techId %>" 
+                    value="advanced"
+                    <%- data.technologies[i].proficiency_level === 'advanced' ? 'checked' : '' %>>
+                <label for="advanced_<%= techId %>">Advanced</label>
+            </td>
+        </tr>
+    <% } %>
+</tbody>
+                </table>
+            </fieldset>
+
+        </div>
+        <fieldset>
+            <legend>Preferences & Misc</legend>
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="lp1">Location Priority 1:</label>
+                    <select name="lp1" id="lp1">
+                        <option value="" disabled selected>Select Location</option>
+                        <option value="l1" <%- data.preferences[0].pref_location_1==='l1' ? 'selected' : '' %>>Location
+                            1</option>
+                        <option value="l2" <%- data.preferences[0].pref_location_1==='l2' ? 'selected' : '' %>>Location
+                            2</option>
+                        <option value="l3" <%- data.preferences[0].pref_location_1==='l3' ? 'selected' : '' %>>Location
+                            3</option>
+                    </select>
+                    <span id="error-lp1" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="lp2">Location Priority 2:</label>
+                    <select name="lp2" id="lp2">
+                        <option value="" disabled selected>Select Location</option>
+                        <option value="l1" <%- data.preferences[0].pref_location_2==='l1' ? 'selected' : '' %>>Location
+                            1</option>
+                        <option value="l2" <%- data.preferences[0].pref_location_2==='l2' ? 'selected' : '' %>>Location
+                            2</option>
+                        <option value="l3" <%- data.preferences[0].pref_location_2==='l3' ? 'selected' : '' %>>Location
+                            3</option>
+                    </select>
+                    <span id="error-lp2" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="lp3">Location Priority 3:</label>
+                    <select name="lp3" id="lp3">
+                        <option value="" disabled selected>Select Location</option>
+                        <option value="l1" <%- data.preferences[0].pref_location_3==='l1' ? 'selected' : '' %>>Location
+                            1</option>
+                        <option value="l2" <%- data.preferences[0].pref_location_3==='l2' ? 'selected' : '' %>>Location
+                            2</option>
+                        <option value="l3" <%- data.preferences[0].pref_location_3==='l3' ? 'selected' : '' %>>Location
+                            3</option>
+                    </select>
+                    <span id="error-lp3" class="error-text"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="notice_period_days">Notice Period(Days):</label>
+                    <input type="text" name="notice_period_days" id="notice_period_days"
+                        value="<%= data.preferences[0].notice_period_days %>">
+                    <span id="error-notice_period_days" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="expected_ctc">Expected Salary(LPA):</label>
+                    <input type="text" name="expected_ctc" id="expected_ctc"
+                        value="<%= data.preferences[0].expected_ctc %>">
+                    <span id="error-expected_salary" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="current_ctc">Current CTC(LPA):</label>
+                    <input type="text" name="current_ctc" id="current_ctc"
+                        value="<%= data.preferences[0].current_ctc %>">
+                    <span id="error-current_ctc" class="error-text"></span>
+                </div>
+                <div class="input-group">
+                    <label for="departments">Department:</label>
+                    <select name="department" id="departments">
+                        <option value="" disabled selected>Select Department</option>
+                        <option value="design" <%- data.preferences[0].department==='design' ? 'selected' : '' %>>Design
+                        </option>
+                        <option value="development" <%- data.preferences[0].department==='development' ? 'selected' : ''
+                            %>>Development</option>
+                        <option value="business" <%- data.preferences[0].department==='business' ? 'selected' : '' %>
+                            >Business</option>
+                        <option value="department" <%- data.preferences[0].department==='Department' ? 'selected' : ''
+                            %>>Department</option>
+                    </select>
+                    <span id="error-departments" class="error-text"></span>
+                </div>
+            </div>
+        </fieldset>
+        <div class="btn-group">
+            <input type="reset" value="Reset Form">
+            <input type="submit" value="Update Application">
+            <input type="button" id="btn-validate-basic" value="Check Form Validity">
+        </div>
+
+    </form>
+
+    <script src="/js/script.js"></script>
+</body>
+
+</html>

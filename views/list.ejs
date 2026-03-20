@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Applicants</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="title">
+    <h3>Applicant List</h3>
+  </div>
+
+  <div style="margin: 16px 0;">
+    <a href="/form">+ Add New Applicant</a>
+    <div>
+      <form method='GET' action="/applicants">
+      <input type="text" name="searchValue" Placeholder="Enter your search String..." value="<%= searchString ? searchString : '' %>">
+      <input type="submit" value="search">
+      </form>
+    </div>
+  </div>
+
+  <% if (!applicants || applicants.length === 0) { %>
+    <p>Empty!</p>
+  <% } else { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th><a href="/applicants/?page=<%= currentPage %>&sort=id&order=<%- (currentOrder === "ASC" ? 'DESC': 'ASC') %>">ID</a></th>
+          <th><a href="/applicants/?page=<%= currentPage %>&sort=first_name&order=<%- (currentOrder === "ASC" ? 'DESC': 'ASC') %>">Name</a></th>
+         <th><a href="/applicants/?page=<%= currentPage %>&sort=email&order=<%- (currentOrder === "ASC" ? 'DESC': 'ASC') %>">Email</a></th>
+          <th>Phone</th>
+          <th>Applied On</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% applicants.forEach((applicant, idx) => { %>
+          <tr>
+            <td><%= applicant.id %></td>
+            <td><%= applicant.first_name %> <%= applicant.last_name %></td>
+            <td><%= applicant.email %></td>
+            <td><%= applicant.phone %></td>
+            <td><%= new Date(applicant.created_at).toLocaleString() %></td>
+            <td>
+              <a href="/form/view/<%= applicant.id %>">View</a> 
+              <a href="/form/edit/<%= applicant.id %>">Edit</a>
+              <form action="/applicants/delete/<%= applicant.id %>" method="post" style="display:inline; margin-left:8px;">
+                <button type="submit" onclick="return confirm('Delete this applicant?');">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+          <div id="pagination">
+            <% if(currentPage === 1) { %>
+               <span>Prev</span>
+            <% } else { %> 
+            <a href="/applicants/?page=<%=currentPage - 1%>&sort=<%= currentSort %>&order=<%= currentOrder %>">Prev</a>
+              <% } %> 
+            <% if(currentPage < totalPagesRequired) { %>
+                 <a href="/applicants/?page=<%=currentPage + 1%>&sort=<%= currentSort %>&order=<%= currentOrder %>">Next</a>
+              <% } else { %>
+                  <span>Next</span> 
+             <% } %>
+          </div>
+</body>
+</html>

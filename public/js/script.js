@@ -296,6 +296,10 @@ if (techBody) {
         }
     }
 }
+
+
+
+
 //Validation
 const isNumberRegex = /[0-9]/;
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -586,10 +590,26 @@ function checkDob() {
     return result;
 }
 
+function checkNoticePeriod() {
+    let npInput = document.getElementById('notice_period_days')
+    let npError = document.getElementById('error-notice_period_days');
+    let result = true;
 
+    if(npInput.value.trim() !== '' || isNaN(npInput.value.trim())) {
+        npError.innerText = 'Please enter valid Number between 0 to 365';
+        npError.style.color = 'red';
+        result = false;
+    } else {
+        npError.innerText = '';
+        npError.style.color = '';
+        result = true;
+    }
+
+    return result;
+}
 
 function checkExpectedSalary() {
-    let expectedSalary = document.getElementById('expected_ctc'); 
+    let expectedSalary = document.getElementById('expected_salary'); 
     let errorExpectedSalary = document.getElementById('error-expected_salary');
     let result = true;
     if (expectedSalary.value.trim() === "" || isNaN(expectedSalary.value.trim())) {
@@ -622,7 +642,6 @@ function checkCurrCtc() {
 }
 
 
-
 function checkLocations() {
     let lp1 = document.getElementById('lp1');
     let lp2 = document.getElementById('lp2');
@@ -653,6 +672,24 @@ function checkLocations() {
     return isValid;
 }
 
+function checkDepartment() {
+    let departmentInput = document.getElementById('department')
+    let departmentError = document.getElementById('error-department');
+    let val = departmentInput.value;
+    let result = true;
+
+    if(val.trim() === ''){
+        departmentError.innerText = "Required Please select Department!!";
+        departmentError.style.color = 'red';
+        result = false;
+    } else {
+        departmentError.innerText = ""
+        departmentError.style.color = "";
+    }
+
+    return result;
+}
+
 
 
 document.getElementById('first_name').addEventListener('blur', checkFirstName);
@@ -670,10 +707,14 @@ document.getElementById('relationship_status').addEventListener('change', checkR
 document.getElementById('dob').addEventListener('blur', checkDob);
 
 //Preferences Section...
+document.getElementById('lp1').addEventListener('change',checkLocations);
+document.getElementById('lp2').addEventListener('change',checkLocations);
+document.getElementById('lp3').addEventListener('change',checkLocations);
 document.getElementById('expected_salary').addEventListener('blur', checkExpectedSalary);
 document.getElementById('expected_ctc')?.addEventListener('blur', checkExpectedSalary);
 document.getElementById('current_ctc')?.addEventListener('blur', checkCurrCtc);
-
+document.getElementById('department').addEventListener('change',checkDepartment);
+document.getElementById('notice_period_days').addEventListener('blur',checkNoticePeriod);
 
 function checkEducationTable() {
     let isValid = true;
@@ -711,7 +752,7 @@ function checkEducationTable() {
 function checkWorkTable() {
     let isValid = true;
     let workInputs = document.getElementById('workExp-body').querySelectorAll('input[type="text"], input[type="date"]');
-    
+    console.log(workInputs)
     for (let i = 0; i < workInputs.length; i++) {
         if (workInputs[i].value.trim() === "") {
             workInputs[i].style.border = "1px solid red";
@@ -855,11 +896,11 @@ function validateAll() {
         checkWorkTable(),
         checkLanguages(),
         checkTechnologies(),
-        checkAvailabilityDate(),
         checkExpectedSalary(),
-        checkAdditionalNotes(),
         checkAtLeastOneLanguage(),
-        checkAtLeastOneTechnology()
+        checkAtLeastOneTechnology(),
+        checkLocations(),
+        checkDepartment()
     ];
 
     const allPass = results.every(Boolean);
@@ -868,7 +909,7 @@ function validateAll() {
 }
 
 // ==========================================================================
-// PHASE 6: THE MASTER SUBMIT BUTTON
+// PHASE 6: THE MASTER SUBMIT BUTTON    
 // ==========================================================================
 
 let validateBtn = document.getElementById('btn-validate-basic');

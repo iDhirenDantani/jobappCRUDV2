@@ -16,9 +16,10 @@ const connection = await mysql.createConnection(
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-  timezone:'Z'
+  timezone:'Z', // so that date stays the same date 
+//   dateStrings:true -- can also use this for timezone conversion issues
 }) 
-// console.log(connection)
+
 app.get('/', (req, res) => {
   res.redirect('/applicants');
 });
@@ -59,7 +60,7 @@ app.get('/applicants', async (req,res) => {
           const totalPagesRequired = Math.ceil(totalRecords/recordsPerPage);
 
            const [rows] = await connection.query(queryWithSearch,[searchVal,searchVal,searchVal,searchVal,recordsPerPage,recordsToSkip]);
-           res.render('list', {
+        res.render('list', {
         applicants:rows,
         currentPage : page,
         totalRecords,
@@ -94,6 +95,7 @@ app.get('/form', (req,res) => {
 
 let data = {}
 app.post('/form/add', async (req,res) => {
+    console.log(req.body)
     let step = 'applicant_details';
     
     try {
@@ -442,7 +444,7 @@ app.post('/form/test' , async (req,res) => {
 app.get('/form/test', (req,res) => {
     // console.log(req.body);
 
-    res.render('testForm')
+    res.render('testForm')  
 })
 
 

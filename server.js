@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import mysql from 'mysql2/promise';
+import { body, validationResult } from 'express-validator';
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -19,6 +20,231 @@ const connection = await mysql.createConnection(
   timezone:'Z', // so that date stays the same date 
 //   dateStrings:true -- can also use this for timezone conversion issues
 }) 
+
+const toArray = (value) => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+};
+
+const isAdult = (dobString) => {
+    if (!dobString) return false;
+    const userDob = new Date(dobString);
+    const today = new Date();
+    const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    return userDob <= minDate;
+};
+
+const validateApplicantForm = [
+    body('first_name').trim().notEmpty().withMessage('First name is required')
+        .matches(/^[A-Za-z\s]+$/).withMessage('First name should contain letters only'),
+    body('last_name').trim().notEmpty().withMessage('Last name is required')
+        .matches(/^[A-Za-z\s]+$/).withMessage('Last name should contain letters only'),
+    body('designation').trim().notEmpty().withMessage('Designation is required'),
+    body('email').trim().notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Please enter a valid email address'),
+    body('phone_number').trim().matches(/^\d{10}$/).withMessage('Phone number must be exactly 10 digits'),
+    body('address_1').trim().notEmpty().withMessage('Address is required'),
+    body('city').trim().notEmpty().withMessage('City is required')
+        .matches(/^[A-Za-z\s]+$/).withMessage('City should not contain numbers'),
+    body('state').trim().notEmpty().withMessage('Please select a state'),
+    body('zip_code').trim().matches(/^\d{6}$/).withMessage('Zip code must be exactly 6 digits'),
+    body('gender').isIn(['male', 'female']).withMessage('Please select a valid gender'),
+    body('relationship_status').isIn(['single', 'married', 'divorced', 'other']).withMessage('Please select relationship status'),
+    body('dob').notEmpty().withMessage('Date of birth is required')
+        .custom((value) => isAdult(value)).withMessage('You must be at least 18 years old'),
+    body('lp1').notEmpty().withMessage('Location priority 1 is required'),
+    body('lp2').notEmpty().withMessage('Location priority 2 is required'),
+    body('lp3').notEmpty().withMessage('Location priority 3 is required'),
+    body('department').trim().notEmpty().withMessage('Department is required'),
+    body('notice_period_days').trim().notEmpty().withMessage('Notice period is required')
+        .isInt({ min: 0, max: 365 }).withMessage('Notice period must be a number between 0 and 365'),
+    body('expected_ctc').trim().notEmpty().withMessage('Expected salary is required')
+        .isFloat({ min: 0 }).withMessage('Expected salary must be a valid number'),
+    body('current_ctc').trim().notEmpty().withMessage('Current CTC is required')
+        .isFloat({ min: 0 }).withMessage('Current CTC must be a valid number'),
+    body().custom((_, { req }) => {
+        const lp1 = req.body.lp1;
+        const lp2 = req.body.lp2;
+        const lp3 = req.body.lp3;
+        if (lp1 && lp2 && lp3 && (lp1 === lp2 || lp1 === lp3 || lp2 === lp3)) {
+            throw new Error('Location priorities must be unique');
+        }
+        return true;
+    }),
+    body().custom((_, { req }) => {
+        const degreeIndexes = Object.keys(req.body)
+            .filter((key) => key.startsWith('degree'))
+            .map((key) => parseInt(key.replace('degree', ''), 10))
+            .filter((index) => !Number.isNaN(index));
+
+        if (degreeIndexes.length === 0) {
+            throw new Error('At least one education record is required');
+        }
+
+        const maxIndex = Math.max(...degreeIndexes);
+        const currentYear = new Date().getFullYear();
+
+        for (let i = 1; i <= maxIndex; i++) {
+            const degree = (req.body[`degree${i}`] || '').trim();
+            const year = (req.body[`year_of_passing${i}`] || '').trim();
+            const institution = (req.body[`institution${i}`] || '').trim();
+            const percentage = (req.body[`percentage${i}`] || '').trim();
+
+            if (!degree && !year && !institution && !percentage) {
+                continue;
+            }
+
+            if (!degree || !year || !institution || !percentage) {
+                throw new Error(`Education row ${i} has incomplete fields`);
+            }
+
+            if (!/^\d{4}$/.test(year) || Number(year) > currentYear) {
+                throw new Error(`Education row ${i} has invalid passing year`);
+            }
+
+            const percentageNumber = parseFloat(percentage);
+            if (Number.isNaN(percentageNumber) || percentageNumber < 0 || percentageNumber > 100) {
+                throw new Error(`Education row ${i} percentage must be between 0 and 100`);
+            }
+        }
+
+        return true;
+    }),
+    body().custom((_, { req }) => {
+        const companyIndexes = Object.keys(req.body)
+            .filter((key) => key.startsWith('company_name'))
+            .map((key) => parseInt(key.replace('company_name', ''), 10))
+            .filter((index) => !Number.isNaN(index));
+
+        if (companyIndexes.length === 0) {
+            throw new Error('At least one work experience row is required');
+        }
+
+        const maxIndex = Math.max(...companyIndexes);
+
+        for (let i = 1; i <= maxIndex; i++) {
+            const company = (req.body[`company_name${i}`] || '').trim();
+            const title = (req.body[`job_title${i}`] || '').trim();
+            const start = (req.body[`start_date${i}`] || '').trim();
+            const end = (req.body[`end_date${i}`] || '').trim();
+            const salary = (req.body[`salary${i}`] || '').trim();
+            const reason = (req.body[`description${i}`] || '').trim();
+
+            if (!company && !title && !start && !end && !salary && !reason) {
+                continue;
+            }
+
+            if (!company || !title || !start || !end || !salary || !reason) {
+                throw new Error(`Work experience row ${i} has incomplete fields`);
+            }
+
+            if (Number.isNaN(Number(salary))) {
+                throw new Error(`Work experience row ${i} salary must be a number`);
+            }
+
+            if (new Date(start) > new Date(end)) {
+                throw new Error(`Work experience row ${i} has invalid date range`);
+            }
+        }
+
+        return true;
+    }),
+    body().custom((_, { req }) => {
+        const selectedLanguages = toArray(req.body.known_language);
+
+        if (selectedLanguages.length === 0) {
+            throw new Error('Please select at least one language');
+        }
+
+        for (const lang of selectedLanguages) {
+            const langId = String(lang).toLowerCase();
+            const canRead = req.body[`read_${langId}`] === 'on';
+            const canWrite = req.body[`write_${langId}`] === 'on';
+            const canSpeak = req.body[`speak_${langId}`] === 'on';
+
+            if (!canRead && !canWrite && !canSpeak) {
+                throw new Error(`Please select read/write/speak for language ${lang}`);
+            }
+        }
+
+        return true;
+    }),
+    body().custom((_, { req }) => {
+        const selectedTech = toArray(req.body.known_tech);
+
+        if (selectedTech.length === 0) {
+            throw new Error('Please select at least one technology');
+        }
+
+        for (const tech of selectedTech) {
+            const techId = String(tech).toLowerCase().replace(/\./g, '').replace(/ /g, '');
+            const level = req.body[`level_${techId}`];
+            if (!level) {
+                throw new Error(`Please select level for technology ${tech}`);
+            }
+        }
+
+        return true;
+    })
+];
+
+const fetchApplicantDataById = async (applicantId) => {
+    const queryToFetchApplicant = 'SELECT * FROM applicant_details where id = ?';
+    const [applicantRows] = await connection.execute(queryToFetchApplicant, [applicantId]);
+
+    const queryToFetchAddress = 'SELECT * from applicant_addresses where applicant_id = ?';
+    const [addressRows] = await connection.execute(queryToFetchAddress, [applicantId]);
+
+    const queryToFetchEducationRecords = 'SELECT * from education_records where applicant_id = ?';
+    const [educationRows] = await connection.execute(queryToFetchEducationRecords, [applicantId]);
+
+    const queryToFetchWorkExp = 'SELECT * from work_experiences where applicant_id = ?';
+    const [workRows] = await connection.execute(queryToFetchWorkExp, [applicantId]);
+
+    const queryToFetchKnowsLanguages = 'SELECT * from languages_known where applicant_id = ?';
+    const [knownLangs] = await connection.execute(queryToFetchKnowsLanguages, [applicantId]);
+
+    const queryToFetchTechnologies = 'SELECT * from technologies_known where applicant_id = ?';
+    const [knownTech] = await connection.execute(queryToFetchTechnologies, [applicantId]);
+
+    const queryToFetchPreferences = 'SELECT * from applicant_preferences where applicant_id = ?';
+    const [preferenceRows] = await connection.execute(queryToFetchPreferences, [applicantId]);
+
+    return {
+        applicant: applicantRows,
+        address: addressRows,
+        education: educationRows,
+        workExp: workRows,
+        languages: knownLangs,
+        technologies: knownTech,
+        preferences: preferenceRows
+    };
+};
+
+const handleValidationErrors = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (errors.isEmpty()) {
+        return next();
+    }
+
+    const uniqueErrors = [...new Set(errors.array().map((error) => error.msg))];
+
+    if (req.path === '/form/add') {
+        return res.status(400).render('form', { serverErrors: uniqueErrors });
+    }
+
+    if (req.path.startsWith('/form/update/')) {
+        try {
+            const applicantId = parseInt(req.params.id, 10);
+            const data = await fetchApplicantDataById(applicantId);
+            return res.status(400).render('editForm', { data, serverErrors: uniqueErrors });
+        } catch (error) {
+            console.error('Error while loading edit form after validation failure', error);
+        }
+    }
+
+    return res.status(400).send(`Validation failed: ${uniqueErrors.join(', ')}`);
+};
 
 app.get('/', (req, res) => {
   res.redirect('/applicants');
@@ -43,7 +269,7 @@ app.get('/applicants', async (req,res) => {
 
     
   const queryToFetchPaginatedApplicants = `SELECT * FROM applicant_details ORDER BY ${currentSort} ${currentOrder} LIMIT ? OFFSET ?`;
-  const queryWithSearch = `SELECT * from applicant_details WHERE id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR  phone LIKE ? ORDER BY ${currentSort} ${currentOrder} LIMIT ? OFFSET ?`;
+    const queryWithSearch = `SELECT * from applicant_details WHERE id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR phone LIKE ? OR email LIKE ? ORDER BY ${currentSort} ${currentOrder} LIMIT ? OFFSET ?`;
   const queryToFetchRecordCount = 'SELECT count(*) as totalCount from applicant_details';
 
   const [result] = await connection.query(queryToFetchRecordCount);
@@ -52,14 +278,14 @@ app.get('/applicants', async (req,res) => {
   console.log(totalPagesRequired)
     try {
        if(searchString) {
-          const queryToCountRecords = `SELECT count(*) as totalRecords from applicant_details WHERE id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR  phone LIKE ?`;
+          const queryToCountRecords = `SELECT count(*) as totalRecords from applicant_details WHERE id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR phone LIKE ? OR email LIKE ?`;
            
           const [result] = await connection.query(queryToCountRecords,[searchVal,searchVal,searchVal,searchVal,searchVal]);
           const totalRecords = result[0].totalRecords;
 
           const totalPagesRequired = Math.ceil(totalRecords/recordsPerPage);
 
-           const [rows] = await connection.query(queryWithSearch,[searchVal,searchVal,searchVal,searchVal,recordsPerPage,recordsToSkip]);
+           const [rows] = await connection.query(queryWithSearch,[searchVal,searchVal,searchVal,searchVal,searchVal,recordsPerPage,recordsToSkip]);
         res.render('list', {
         applicants:rows,
         currentPage : page,
@@ -94,7 +320,7 @@ app.get('/form', (req,res) => {
 })
 
 let data = {}
-app.post('/form/add', async (req,res) => {
+app.post('/form/add', validateApplicantForm, handleValidationErrors, async (req,res) => {
     console.log(req.body)
     let step = 'applicant_details';
     
@@ -246,7 +472,7 @@ app.get('/form/edit/:id', async (req,res) => {
 
 //update thing...
 
-app.post('/form/update/:id', async (req, res) => {
+app.post('/form/update/:id', validateApplicantForm, handleValidationErrors, async (req, res) => {
     const applicantId = parseInt(req.params.id);
     let step = 'applicant_details';
     
